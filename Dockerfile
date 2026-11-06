@@ -31,3 +31,4 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 EXPOSE 80
 
 # Cache bust: Fri Nov  6 12:03:26 JST 2026
+# Force update 1793934995
