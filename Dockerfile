@@ -27,12 +27,5 @@ COPY . /var/www/html
 RUN composer install --no-dev --optimize-autoloader
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# エントリーポイントスクリプトの配置
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
 # ポート公開
 EXPOSE 80
-
-# コンテナ起動時にスクリプトを実行
-ENTRYPOINT ["entrypoint.sh"]
