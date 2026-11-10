@@ -1,0 +1,24 @@
+{
+    // チーム共通の VS Code 設定（保存時に自動整形する）
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[php]": {
+        "editor.defaultFormatter": "open-southeners.laravel-pint"
+    },
+    "[blade]": {
+        "editor.defaultFormatter": "shufo.vscode-blade-formatter"
+    },
+    "files.associations": {
+        "*.blade.php": "blade"
+    },
+    "emmet.includeLanguages": {
+        "blade": "html"
+    },
+    "tailwindCSS.includeLanguages": {
+        "blade": "html"
+    },
+    "tailwindCSS.experimental.classRegex": [
+        ["class=\"([^\"]*)\"", "([^\\s]+)"],
+        ["class:\\s*\\[([^\\]]*)\\]", "([^\\s]+)"]
+    ]
+}
