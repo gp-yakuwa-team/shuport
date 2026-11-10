@@ -1,0 +1,13 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    paths:
+        - app
+        - config
+        - database
+        - routes
+
+    # 導入時は一番緩いレベル0から開始し、開発が進んだら段階的に上げる
+    level: 0
