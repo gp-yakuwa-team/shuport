@@ -1,7 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     $dbConnected = false;
@@ -12,7 +13,7 @@ Route::get('/', function () {
         DB::connection()->getPdo();
         $dbConnected = true;
         $dbName = DB::connection()->getDatabaseName();
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         $dbConnected = false;
     }
 
