@@ -1,0 +1,13 @@
+{
+    // このプロジェクトで推奨する VS Code 拡張機能。
+    // リポジトリを開いたときに、VS Code がインストールを提案します。
+    "recommendations": [
+        "bmewburn.vscode-intelephense-client",
+        "onecentlin.laravel-blade",
+        "shufo.vscode-blade-formatter",
+        "open-southeners.laravel-pint",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "editorconfig.editorconfig"
+    ]
+}
