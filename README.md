@@ -114,7 +114,7 @@ cp.env.example.env
 - ブランチ名: `feature/<内容>`、`fix/<内容>`、`chore/<内容>`、`docs/<内容>`
 - PR タイトル: Conventional Commits 形式（`feat:` / `fix:` / `chore:` / `docs:` など）＋日本語の要約
 - PR 本文: 変更内容と影響範囲を日本語で簡潔に書いてください（`.github/pull_request_template.md` が自動で挿入されます）
-- マージ条件: CI（テスト・Pint）がグリーンであること
+- マージ条件: CI（テスト・Pint・PHPStan）がグリーンであること
 
 ### テスト・コード整形
 
@@ -124,7 +124,16 @@ cp.env.example.env
 composer test      # テストの実行
 composer lint      # Pint による整形チェック（CI と同じ）
 composer lint:fix  # Pint による自動整形
+composer analyse   # Larastan (PHPStan) による静的解析（CI と同じ）
 ```
+
+#### 静的解析（Larastan / PHPStan）
+
+静的解析には Larastan（PHPStan の Laravel 拡張）を導入しています。PR では CI の `phpstan` ジョブが自動で実行されます。
+
+- 設定ファイル: `phpstan.neon`（解析レベルは当面 level 0。開発の進捗に合わせて段階的に上げていく方針です）
+- 既存コードへの指摘は `phpstan-baseline.neon` に逃がしています。**新規コードの指摘は baseline に追加せず、コード側を直してください**
+- baseline を再生成する場合: `./vendor/bin/phpstan analyse --generate-baseline`（Sail の場合は `./vendor/bin/sail php vendor/bin/phpstan analyse --generate-baseline`）
 
 #### コミット前の自動整形（任意）
 
