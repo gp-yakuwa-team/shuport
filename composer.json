@@ -1,11 +1,12 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "gp-yakuwa-team/shuport",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "IT学生向けのポートフォリオ＆AIエントリーシート評価支援Webアプリケーション",
     "keywords": [
         "laravel",
-        "framework"
+        "shuport",
+        "portfolio"
     ],
     "license": "MIT",
     "require": {
