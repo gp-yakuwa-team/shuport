@@ -1,0 +1,6 @@
+# 既存コードに対する指摘を記録するベースライン。
+# 初回は中身が空で、以下のコマンドで生成する:
+#   ./vendor/bin/phpstan analyse --generate-baseline
+# 新規コードの指摘はここに追加せず、コード側を直すこと。
+parameters:
+    ignoreErrors: []
