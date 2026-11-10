@@ -118,10 +118,29 @@ cp.env.example.env
 
 ### テスト・コード整形
 
+テストと整形チェックは composer スクリプトに統一しています（Sail の場合は `./vendor/bin/sail` を先頭に付けてください）。
+
 ```bash
-php artisan test
-./vendor/bin/pint
+composer test      # テストの実行
+composer lint      # Pint による整形チェック（CI と同じ）
+composer lint:fix  # Pint による自動整形
 ```
+
+#### コミット前の自動整形（任意）
+
+ステージした PHP ファイルへ Pint を自動適用する pre-commit フックを用意しています。使う場合は初回のみ、各自の環境で有効化してください。
+
+```bash
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-commit
+```
+
+ホストに PHP が無い環境（Sail のみの場合）ではフックは自動でスキップされ、整形の最終確認は CI が行います。
+
+#### その他の開発支援
+
+- 依存パッケージの更新は Dependabot が週次で自動PRを作成します（`dependencies` ラベル）
+- `.vscode/` にチーム共通のエディタ設定と推奨拡張機能を置いています
 
 ## ライセンス
 

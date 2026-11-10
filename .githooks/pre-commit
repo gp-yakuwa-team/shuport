@@ -1,0 +1,33 @@
+#!/bin/sh
+# pre-commit フック: ステージされた PHP ファイルに Laravel Pint を自動適用する。
+#
+# 有効化 (初回のみ・各自の環境で実行):
+#   git config core.hooksPath .githooks
+#   chmod +x .githooks/pre-commit
+#
+# ホストに PHP が無い環境 (Sail のみで開発している場合など) では、
+# コミットをブロックせずにスキップする。整形の最終確認は CI の pint ジョブが行う。
+
+# ステージされた PHP ファイルの一覧
+STAGED_PHP=$(git diff --cached --name-only --diff-filter=ACM | grep '\.php$' || true)
+
+if [ -z "$STAGED_PHP" ]; then
+    exit 0
+fi
+
+# PHP が無い環境ではスキップ
+if ! command -v php >/dev/null 2>&1; then
+    echo "[pre-commit] php が見つからないため Pint をスキップします (CI でチェックされます)。"
+    exit 0
+fi
+
+if [ ! -x "./vendor/bin/pint" ]; then
+    echo "[pre-commit] vendor/bin/pint が無いためスキップします。composer install を実行してください。"
+    exit 0
+fi
+
+# 整形を自動適用して、結果をステージし直す
+./vendor/bin/pint --quiet $STAGED_PHP
+git add $STAGED_PHP
+
+exit 0
