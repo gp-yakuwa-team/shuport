@@ -1,0 +1,16 @@
+# CODEOWNERS — 変更内容によって、レビュー担当を自動で割り当てるための指定。
+# 「壊れたら影響が大きい場所」は SV / PM を必須レビュアーにする。
+# マージのブロックまで効かせるには、ブランチ保護で「Require review from Code Owners」を有効化すること。
+# 担当：八鍬（PM）・中村（SV）・瀧下（SV）
+
+# DB の変更（マイグレーション）
+/database/migrations/ @yakuwa110 @NakamuraJuki0806 @taki-atsu-student
+
+# 環境変数・共有設定
+/.env.example @yakuwa110 @NakamuraJuki0806 @taki-atsu-student
+/.env.encrypted @yakuwa110 @NakamuraJuki0806 @taki-atsu-student
+
+# CI とリポジトリのガバナンス
+/.github/workflows/ @yakuwa110 @NakamuraJuki0806 @taki-atsu-student
+/.github/CODEOWNERS @yakuwa110 @NakamuraJuki0806 @taki-atsu-student
+/AGENTS.md @yakuwa110 @NakamuraJuki0806 @taki-atsu-student
