@@ -1,0 +1,6 @@
+services:
+  laravel.test:
+    environment:
+      CLAUDE_CONFIG_DIR: /home/sail/.claude
+    volumes:
+      - ${HOME}/.claude-shuport:/home/sail/.claude

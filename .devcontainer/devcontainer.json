@@ -1,0 +1,21 @@
+// https://aka.ms/devcontainer.json
+{
+	"name": "ShuPort (Sail + Claude Code)",
+	"dockerComposeFile": [
+		"../compose.yaml",
+		"compose.claude.yaml"
+	],
+	"service": "laravel.test",
+	"workspaceFolder": "/var/www/html",
+	"features": {
+		"ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [],
+			"settings": {}
+		}
+	},
+	"remoteUser": "sail",
+	"postCreateCommand": "chown -R 1000:1000 /var/www/html 2>/dev/null || true"
+}
