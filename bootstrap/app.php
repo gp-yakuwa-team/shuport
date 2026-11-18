@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\AuthenticateSupabaseToken;
+use App\Http\Middleware\EnsureNotDemoUser;
+use App\Http\Middleware\VerifySupabaseSession;
 use App\Support\ErrorRecorder;
 use App\Support\ProblemDetails;
 use Illuminate\Foundation\Application;
@@ -15,7 +18,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            // Supabase の JWT を検証する認証ガード（B4）
+            'supabase.auth' => AuthenticateSupabaseToken::class,
+            // セッションの追加確認（API-22・23・38）
+            'supabase.session' => VerifySupabaseSession::class,
+            // 体験用アカウントでは使えない操作の制限（API-22・36・38）
+            'not.demo' => EnsureNotDemoUser::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
