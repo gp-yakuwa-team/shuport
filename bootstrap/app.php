@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\ErrorRecorder;
+use App\Support\ProblemDetails;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,4 +20,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // API のエラー応答は RFC 9457（application/problem+json）に統一する
+        $exceptions->render(function (Throwable $e, Request $request) {
+            if ($request->is('api/*')) {
+                return ProblemDetails::fromThrowable($e, $request);
+            }
+        });
+
+        // 異常は error_logs に記録する
+        $exceptions->report(function (Throwable $e): void {
+            ErrorRecorder::record($e);
+        });
     })->create();
