@@ -54,7 +54,7 @@ class PurgeExpiredDataJob implements ShouldQueue
 
     private function reachedEnd(): bool
     {
-        $endAt = env('PUBLIC_END_AT');
+        $endAt = config('shuport.public_end_at');
 
         if (! is_string($endAt) || $endAt === '') {
             return false;
