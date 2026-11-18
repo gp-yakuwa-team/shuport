@@ -38,7 +38,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     // 認証の対象外
-    Route::post('/line/webhook', [LineWebhookController::class, 'store']);      // API-12
+    Route::post('/line/webhook', LineWebhookController::class);      // API-12
     Route::post('/demo/login', [DemoController::class, 'login']);               // API-39
     Route::get('/health', [HealthController::class, 'show']);                   // API-40
 
