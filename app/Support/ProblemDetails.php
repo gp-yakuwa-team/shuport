@@ -44,6 +44,25 @@ class ProblemDetails
         return new JsonResponse($problem, $status, $headers);
     }
 
+    /**
+     * ステータスと detail を指定して problem+json の応答を作る。
+     * レート制限の超過時など、例外を経由しない場合に使う。
+     *
+     * @param  array<string, string>  $headers
+     */
+    public static function response(int $status, string $detail, Request $request, array $headers = []): JsonResponse
+    {
+        $problem = [
+            'type' => 'about:blank',
+            'title' => self::titleFor($status),
+            'status' => $status,
+            'detail' => $detail,
+            'instance' => '/'.$request->path(),
+        ];
+
+        return new JsonResponse($problem, $status, array_merge(['Content-Type' => 'application/problem+json'], $headers));
+    }
+
     private static function statusFor(Throwable $e): int
     {
         return match (true) {
