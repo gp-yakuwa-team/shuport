@@ -41,9 +41,9 @@ return new class extends Migration
             $table->unique(['user_id', 'normalized_company_name']);
         });
 
-        DB::statement("alter table public.companies add constraint companies_company_name_check check (char_length(company_name) <= 100)");
+        DB::statement('alter table public.companies add constraint companies_company_name_check check (char_length(company_name) <= 100)');
         DB::statement("alter table public.companies add constraint companies_industry_check check (industry in ('メーカー（機械・電機・自動車）','メーカー（素材・化学）','メーカー（食品・日用品・医薬品）','商社','小売・流通','金融（銀行・証券・保険）','IT・ソフトウェア・通信','広告・出版・マスコミ','コンサルティング','建設・不動産','運輸・物流','電力・ガス・エネルギー','人材・教育','医療・福祉','ホテル・旅行・外食・レジャー','官公庁・団体','その他'))");
-        DB::statement("alter table public.companies add constraint companies_job_info_text_check check (char_length(job_info_text) <= 5000)");
+        DB::statement('alter table public.companies add constraint companies_job_info_text_check check (char_length(job_info_text) <= 5000)');
         DB::statement("alter table public.companies add constraint companies_selection_status_check check (selection_status in ('検討中','エントリー済み','書類選考中','一次面接','二次面接','最終面接','内定','お見送り','辞退'))");
 
         Schema::create('company_login_infos', function (Blueprint $table) {
