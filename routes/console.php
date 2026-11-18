@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\CleanupExpiredDataJob;
+use App\Jobs\PurgeExpiredDataJob;
 use App\Jobs\SendDailyLineDigestJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -21,4 +22,10 @@ Schedule::job(new SendDailyLineDigestJob)
 // 期限を過ぎたデータの自動削除: 毎日 3:00（JST）。日次バックアップ（4:17）より前に走る。
 Schedule::job(new CleanupExpiredDataJob)
     ->dailyAt('03:00')
+    ->timezone('Asia/Tokyo');
+
+// 公開終了時のデータ削除: 公開終了日時（PUBLIC_END_AT）に達したかを確かめる。
+// 実際の削除条件はジョブ側で判定し、未設定・未到達の間は何もしない。
+Schedule::job(new PurgeExpiredDataJob)
+    ->everyMinute()
     ->timezone('Asia/Tokyo');
