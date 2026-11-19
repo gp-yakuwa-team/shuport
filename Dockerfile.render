@@ -28,4 +28,9 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 
 EXPOSE 80
 
-CMD php artisan migrate --force && apache2-foreground
+# 起動時に migrate は実行しない。
+# 共有 DB は DB定義書 v7 の SQL で構築済みで、migration の実行記録と
+# 実テーブルが一致していないため、起動時 migrate が既存テーブルへの
+# CREATE TABLE で失敗し、Web サーバーが起動できなかった（2026-11-19 確認）。
+# スキーマの変更は、デプロイとは分けて意図的に適用すること。
+CMD apache2-foreground
