@@ -99,15 +99,15 @@ ShuPort は就活支援 Web アプリケーション。ES 作成にかかる時�
 - 整形は Pint に従う
 - 型は Larastan（phpstan）が通る書き方にする
 - API の共通仕様（RFC 9457 のエラー形式、他人のリソースは 404、日時は JST）は API定義書 v18 に従う
-- 画面遷移・フォームで完結する操作は Web ルート、非同期処理と外部連携は API とする（API定義書の切り分けに従う）
+- 画面のデータの読み書きはすべて REST API で行い、Blade は表示のみとする（利用者データを埋め込まない）。認証は Authorization: Bearer（Supabase JWT）で行い、Cookie 認証・CSRF トークンは使わない（2026年11月18日 決定13）
 
 ### 実装上の決定事項（再追加・変更をしないこと）
 
 - メイン AI のモデルは Gemini 3.5 Flash-Lite（gemini-3.5-flash-lite）。モデル ID はコードに固定せず、環境変数 GEMINI_MODEL から読む
 - 定時ジョブはコンテナの中で schedule:work を動かして実行する。外部の cron からは動かさない
-- ES 生成の focus_points は API に無い（API定義書 v17 で削除済み）。画面・API のどちらにも再追加しない。tone は画面から送らない
+- ES 生成の focus_points は API に無い（現行の API定義書 v18 にも無い）。画面・API のどちらにも再追加しない。tone は画面から送らない
 - 保存済み ES の AI 生成は API-13（POST /api/v1/entry-sheets/{entry_sheet_id}/generate）を使う。生成中の再呼び出しには 409 を返す
-- 新規登録画面に年齢確認のチェックは設けない（基本設計書 v15 第14章 No.1 の決定）
+- 新規登録画面に年齢確認のチェックは設けない（基本設計書 v16 第14章 No.1 の決定）
 - レート制限の上限と、上限に達したときのメッセージの文言は、API定義書 v18 第5章と基本設計書 v16 4.5 のとおりとする
 
 ### AI への禁止事項
