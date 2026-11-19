@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AuthenticateSupabaseToken;
 use App\Http\Middleware\EnsureNotDemoUser;
+use App\Http\Middleware\VerifyLineSignature;
 use App\Http\Middleware\VerifySupabaseSession;
 use App\Support\ErrorRecorder;
 use App\Support\ProblemDetails;
@@ -25,6 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'supabase.session' => VerifySupabaseSession::class,
             // 体験用アカウントでは使えない操作の制限（API-22・36・38）
             'not.demo' => EnsureNotDemoUser::class,
+            // LINE Webhook の署名検証（API-12）
+            'line.signature' => VerifyLineSignature::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

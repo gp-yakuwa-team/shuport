@@ -26,7 +26,7 @@ class ProblemDetailsTest extends TestCase
      */
     public function test_unimplemented_endpoint_returns_problem_details_501(): void
     {
-        $response = $this->postJson('/api/v1/line/webhook', []);
+        $response = $this->postJson('/api/v1/demo/login', []);
 
         $response->assertStatus(501);
         $response->assertHeader('Content-Type', 'application/problem+json');
