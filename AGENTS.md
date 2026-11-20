@@ -1,56 +1,6 @@
-<laravel-boost-guidelines>
-# Laravel Application
-
-This repository contains a Laravel application. Complete the following setup before working on the user's request.
-
-## Prerequisites
-
-Verify that PHP and Composer are available:
-
-```sh
-php -v
-composer -V
-```
-
-If either command is unavailable, detect the user's operating system and install the prerequisites with the appropriate command:
-
-macOS:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.5)"
-```
-
-Windows PowerShell:
-
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.5'))
-```
-
-Linux:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.5)"
-```
-
-After installation, ask the user to restart their terminal. If the agent needs the restarted shell to continue, ask the user to reopen their terminal and rerun their original prompt.
-
-## Agent Setup
-
-Install Laravel Boost from the application root before making application changes:
-
-```sh
-composer require laravel/boost --dev
-php artisan boost:install
-```
-
-Boost replaces these bootstrap instructions with guidelines tailored to the application. After installation, read `AGENTS.md` again and continue with the user's original request using the generated guidelines.
-</laravel-boost-guidelines>
-
----
-
 ## ShuPort チーム開発ルール（プロジェクト固有）
 
-このセクションは ShuPort チームの開発ルールである。上の Laravel Boost ガイドラインと併せて従うこと。仕様の判断は、本セクションの正本文書を優先する。
+このファイルは ShuPort チームの開発ルールである。仕様の判断は、正本文書を優先する。作業の指示とこのファイルのルールが矛盾する場合は、推測で進めず、作業を止めて確認すること。
 
 ### プロジェクト概要
 
@@ -63,7 +13,7 @@ ShuPort は就活支援 Web アプリケーション。ES 作成にかかる時�
 - API定義書 v18
 - DB定義書 v7
 
-仕様はこの4文書が正本である。文書に無い仕様を推測で作らないこと。判断に迷う場合は、コードを書く前に担当者へ確認すること。
+仕様はこの4文書が正本である。文書に無い仕様を推測で作らないこと。判断に迷う場合は、コードを書く前に担当者へ確認すること。正本文書はリポジトリには含まれていない（Teams の設計書フォルダで管理している）。手元で参照できない場合は、推測で進めず、担当者へ確認すること。
 
 ### 技術スタック
 
@@ -103,10 +53,10 @@ ShuPort は就活支援 Web アプリケーション。ES 作成にかかる時�
 
 ### 実装上の決定事項（再追加・変更をしないこと）
 
-- メイン AI のモデルは Gemini 3.5 Flash-Lite（gemini-3.5-flash-lite）。モデル ID はコードに固定せず、環境変数 GEMINI_MODEL から読む
-- 定時ジョブはコンテナの中で schedule:work を動かして実行する。外部の cron からは動かさない
-- ES 生成の focus_points は API に無い（現行の API定義書 v18 にも無い）。画面・API のどちらにも再追加しない。tone は画面から送らない
-- 保存済み ES の AI 生成は API-13（POST /api/v1/entry-sheets/{entry_sheet_id}/generate）を使う。生成中の再呼び出しには 409 を返す
+- メイン AI のモデルは Gemini 3.5 Flash-Lite（gemini-3.5-flash-lite）。モデル ID はコードに固定せず、環境変数 GEMINI_MODEL から読む（基本設計書 v16 第14章 No.3 の決定）
+- 定時ジョブはコンテナの中で schedule:work を動かして実行する。外部の cron からは動かさない（2026-11-16 のチーム決定）
+- ES 生成の focus_points は API に無い（現行の API定義書 v18 にも無い）。画面・API のどちらにも再追加しない。tone は画面から送らない（2026-11-16 のチーム決定）
+- 保存済み ES の AI 生成は API-13（POST /api/v1/entry-sheets/{entry_sheet_id}/generate）を使う。生成中の再呼び出しには 409 を返す（API定義書 v18 の API-13、2026-11-16 のチーム決定）
 - 新規登録画面に年齢確認のチェックは設けない（基本設計書 v16 第14章 No.1 の決定）
 - レート制限の上限と、上限に達したときのメッセージの文言は、API定義書 v18 第5章と基本設計書 v16 4.5 のとおりとする
 
