@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Models\Company;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCompanyRequest extends FormRequest
@@ -24,7 +25,9 @@ class StoreCompanyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => ['required', 'string', 'max:100'],
+            'industry' => ['required', 'string', 'in:'.implode(',', Company::INDUSTRIES)],
+            'job_description' => ['nullable', 'string', 'max:5000'],
         ];
     }
 }
