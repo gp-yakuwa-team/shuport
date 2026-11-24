@@ -77,7 +77,7 @@ cp .env.example .env
 
 - ホスティング: Render（`Dockerfile.render` を使用）
 - DB / 認証: Supabase（PostgreSQL / Supabase Auth）
-- 起動時にマイグレーションを自動実行します
+- 起動時にマイグレーションは実行しません（共有 DB は DB定義書 v7 の SQL で作ってあるため。PR #68）。テーブルの変更は、デプロイとは分けて適用します
 - 定時ジョブはコンテナの中で `schedule:work` を動かして実行します（外部の cron は使いません）
 
 ### 設計文書

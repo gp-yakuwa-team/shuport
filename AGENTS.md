@@ -15,6 +15,16 @@ ShuPort は就活支援 Web アプリケーション。ES 作成にかかる時�
 
 仕様はこの4文書が正本である。文書に無い仕様を推測で作らないこと。判断に迷う場合は、コードを書く前に担当者へ確認すること。正本文書はリポジトリには含まれていない（Teams の設計書フォルダで管理している）。手元で参照できない場合は、推測で進めず、担当者へ確認すること。
 
+### 実装で読む文書
+
+- 正本の4文書のほかに、次の文書を読む。手元では、リポジトリの docs-local/ に置く（Git には入れない。公開のリポジトリなので、コミットしない）
+  - 詳細設計書 v3（付録A：API の項目の共通の決まりと、API-14〜API-41 の項目〈A.4〉）
+  - 詳細設計 4.10 バックグラウンド処理 v1.6、4.11 AIプロンプト設計 v1.2、4.12 LINE連携 v1.4
+  - AI設計書 V5、3.4 セキュリティ設計 v5、使用技術まとめ、デザインポリシー、画面遷移図（v18 準拠）
+- docs-local/ に無い文書の内容は推測しない。作業に要る文書が無いときは、止めて伝える
+- 文書どうし、または文書とこのファイルが食い違うときは、どちらかに合わせず、止めて報告する
+- 「共通ルール」フォルダの文書（AGENTS（仮）.md など）は使わない（ナビの項目などが、今の決定と食い違うため）
+
 ### 技術スタック
 
 - Laravel 13 / PHP 8.4
@@ -59,6 +69,20 @@ ShuPort は就活支援 Web アプリケーション。ES 作成にかかる時�
 - 保存済み ES の AI 生成は API-13（POST /api/v1/entry-sheets/{entry_sheet_id}/generate）を使う。生成中の再呼び出しには 409 を返す（API定義書 v18 の API-13、2026-11-16 のチーム決定）
 - 新規登録画面に年齢確認のチェックは設けない（基本設計書 v16 第14章 No.1 の決定）
 - レート制限の上限と、上限に達したときのメッセージの文言は、API定義書 v18 第5章と基本設計書 v16 4.5 のとおりとする
+- API の受け口は app/Http/Controllers/Api/V1 に作る（app/Http/Controllers/CompanyController.php は使わない）
+- 画面から呼ぶ API（API-14〜API-35、API-38）は、詳細設計書 v3 付録A の A.4 に、その API の項目が書かれてから作る。A.4 に無い項目・並び順・エラーを推測で作らない（決定24）
+- 日時：アプリと DB の接続のタイムゾーンは Asia/Tokyo（config/app.php と config/database.php の pgsql に直接書く。APP_TIMEZONE は使わない）。API の日時は +09:00 を付けた ISO 8601、日付だけの項目は YYYY-MM-DD。オフセットのない日時は日本時間として受け取る。Eloquent の既定の JSON（UTC の Z 付き）のまま返さない（決定20）
+- 環境変数：DB の接続は DB_CONNECTION（pgsql）と DB_URL。DATABASE_URL は使わない。env() は config/ の中だけで使う（決定21）
+- 新規登録・パスワード再設定・メールアドレスの変更では、Supabase Auth に戻り先の URL（APP_URL の画面）を渡す（決定22）
+- CSP：script-src は 'self' とリクエストごとの nonce（Vite::useCspNonce()）。Blade に直接書く script には nonce を付ける。onclick などの属性に書く処理と javascript: の URL は使わない。外部の CDN から JS・CSS を読み込まない（決定23。値は基本設計書 v16 10.2 の仮の値）
+- 企業の削除は API-41（DELETE /api/v1/companies/{company_id}）。その企業の ES・予定・タスク・採用サイトログイン情報・選考ステータスの履歴も一緒に消える。ES・タスクを単独で消す API は作らない。体験用アカウントは 403。ai_usage_logs は消さない（決定14）
+- 同じ企業の企業研究・最新トピックスの再取得が処理中（未処理・生成中で5分以内）のときに API-09・API-10 が呼ばれたら、新しいジョブを入れず、回数にも数えず、202 で処理中の job_id を返す。メインAIが使えるかと回数制限より先に確かめる（決定25）
+- 202 で受け付けた AI のジョブが失敗したら、ai_jobs を「失敗」にし、理由のコードは error_logs に記録する。API-11 は status だけを返す（決定27）
+- ES生成で AI に渡す項目は、AI設計書 V5 3.2.3・3.2.4 のとおり（es_group_id、company.job_info_masked、free_entries、AiProfileDTO。決定28）
+- AI 1つに使う時間：ES生成は Gemini 8秒・Workers AI 7秒、LINE のトーク解析は Gemini 12秒・Workers AI 8秒（仮。決定19）。ジョブの $timeout は、企業研究 40秒・最新トピックス 40秒・ES生成 25秒・LINE のトーク解析 30秒（詳細設計 4.10）
+- LINE：受信した本文と replyToken はテーブルに保存しない。暗号化して cache に120秒だけ置き（キーは line:msg:{uuid}）、ParseLineMessageJob には利用者ID・cache のキー・受信日時だけを渡す。webhookEventId は cache に24時間記録する（決定15）。受け付けるときは、同じイベントの2回目 → AI生成の休止中 → AI生成の上限 の順に確かめる（決定16）。LINE定時通知の停止は app_states のキー line_digest_suspension（決定17）。連携コードのハッシュの鍵は環境変数 LINE_CODE_PEPPER（決定18）。署名を確かめた後は、DB の障害のときも 200 を返し、返信しない（決定30）
+- 体験用ログイン（API-39）は、同一 IP から1分あたり10回まで（仮。決定26）。体験用のデータは DemoDataSeeder で作り、shuport:reset-demo-data を毎日 3:30（JST）にスケジューラから動かす（仮。決定29）
+- 起動するときに migrate・cache:clear・optimize:clear を実行しない。20:00〜20:30（JST）にデプロイとキャッシュの消去をしない（決定9）
 
 ### AI への禁止事項
 
@@ -67,6 +91,8 @@ ShuPort は就活支援 Web アプリケーション。ES 作成にかかる時�
 - .env の値や API キーなどの秘密情報を、コード・コメント・出力に含めない。.env.encrypted には触らない
 - テストを省略しない。テストが落ちたときに、テスト側を書き換えて通すことはしない（仕様と矛盾する場合は、直さずに報告する）
 - 仕様の変更が必要になった場合は、コードより先に文書の改訂を提案する
+- テストを共有の DB（Supabase）に向けて動かさない。共有の DB で migrate:fresh・migrate:rollback・db:wipe を実行しない。シーダーは、人に頼まれたときだけ動かす
+- docs-local/ の文書をコミットしない。文書の文を、コードのコメントに長く写さない
 
 ### 確認先
 
