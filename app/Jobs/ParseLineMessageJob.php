@@ -17,7 +17,7 @@ class ParseLineMessageJob implements ShouldQueue
     /**
      * タイムアウトは20秒（決定事項。テストで見直す）。
      */
-    public int $timeout = 20;
+    public int $timeout = 30;
 
     /**
      * @param  array<string, mixed>  $event  Webhook のイベント1件分（生の Payload 全体は保存しない）
