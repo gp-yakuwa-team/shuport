@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Models\EsAnswer;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StoreEntrySheetRequest extends FormRequest
 {
@@ -23,7 +25,28 @@ class StoreEntrySheetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'company_id' => ['required', 'uuid'],
+            'title' => ['required', 'string', 'max:50'],
+            'questions' => ['required', 'array', 'min:1', 'max:30'],
+            'questions.*.order' => ['required', 'integer'],
+            'questions.*.type' => ['required', 'string', 'in:'.implode(',', array_keys(EsAnswer::ITEM_TYPES))],
+            'questions.*.question_text' => ['required', 'string', 'max:500'],
+            'questions.*.max_chars' => ['required', 'integer', 'min:1', 'max:2000'],
+            'tone' => ['nullable', 'string', 'in:formal,confident,passionate'],
         ];
+    }
+
+    /**
+     * 設問の order は同一 ES 内で重複不可（API定義書 v18 6.4）。
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function ($validator) {
+            $orders = collect($this->input('questions', []))->pluck('order');
+
+            if ($orders->count() !== $orders->unique()->count()) {
+                $validator->errors()->add('questions', '設問の順序（order）が重複しています');
+            }
+        });
     }
 }
