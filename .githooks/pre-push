@@ -1,0 +1,46 @@
+#!/bin/sh
+# ShuPort 用 pre-push フック：push する PHP ファイルに Pint をかけてから送る。
+#
+# 有効化（各自の環境で1回だけ）:
+#   git config core.hooksPath .githooks
+# （composer setup を実行した場合は自動で設定されます）
+#
+# 動作:
+# - push 対象のコミットに含まれる PHP ファイルだけを整形する
+# - Pint が直したファイルがあったら push を止めるので、直った内容をコミットして push し直す
+# - Pint を実行できない環境（Docker が止まっている等）では、注意だけ出して push を通す
+
+# push 先との差分から対象ファイルを取る。比較相手が無い場合は直近コミット分を見る
+upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{push}' 2>/dev/null)
+if [ -n "$upstream" ]; then
+    range="$upstream..HEAD"
+else
+    range="HEAD~1..HEAD"
+fi
+
+files=$(git diff --name-only --diff-filter=ACM "$range" -- '*.php' 2>/dev/null)
+if [ -z "$files" ]; then
+    exit 0
+fi
+
+# Pint の実行方法を選ぶ（Sail 優先、次にホストの vendor/bin/pint）
+if [ -x ./vendor/bin/sail ] && command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+    pint_cmd="./vendor/bin/sail pint"
+elif [ -x ./vendor/bin/pint ] && command -v php >/dev/null 2>&1; then
+    pint_cmd="./vendor/bin/pint"
+else
+    echo "[pre-push] Pint を実行できる環境が見つからないため、整形チェックを飛ばします（CI で確認されます）。"
+    exit 0
+fi
+
+echo "[pre-push] Pint で整形しています..."
+# shellcheck disable=SC2086
+$pint_cmd $files >/dev/null 2>&1
+
+if ! git diff --quiet -- $files; then
+    echo "[pre-push] Pint が次のファイルを整形しました。内容を確認してコミットし、もう一度 push してください:"
+    git diff --name-only -- $files | sed 's/^/  - /'
+    exit 1
+fi
+
+exit 0
