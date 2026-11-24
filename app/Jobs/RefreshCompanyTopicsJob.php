@@ -7,7 +7,7 @@ class RefreshCompanyTopicsJob extends AiJobBase
     /**
      * タイムアウトは30秒（決定事項。テストで見直す）。
      */
-    public int $timeout = 30;
+    public int $timeout = 40;
 
     public function __construct(
         public string $companyId,
