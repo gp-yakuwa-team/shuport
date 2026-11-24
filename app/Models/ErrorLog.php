@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\FormatsDatesForApi;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class ErrorLog extends Model
 {
-    use HasUuids;
+    use FormatsDatesForApi, HasUuids;
 
     /**
      * error_logs は作成日時を持たず、発生日時は occurred_at で表す。
