@@ -32,4 +32,15 @@ class TaskController extends Controller
     {
         return ProblemDetails::response(501, '未実装です', $request);
     }
+
+    /**
+     * API-42 タスク削除: タスクを削除する（M3・No.9）。
+     * API定義書 v18 に受け口が無かったため新設した（予定の削除 API-31 と
+     * そろえ、変更 API-34 とは分けている）。他人のタスクは 404 を返す。
+     * API定義書と詳細設計書（付録A A.4）への追加が別途必要。
+     */
+    public function destroy(Request $request, string $taskId): JsonResponse
+    {
+        return ProblemDetails::response(501, '未実装です', $request);
+    }
 }
