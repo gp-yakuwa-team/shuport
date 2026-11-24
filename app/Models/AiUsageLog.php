@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\SerializesDatesAsJst;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AiUsageLog extends Model
 {
-    use HasUuids;
+    use HasUuids, SerializesDatesAsJst;
 
     /**
      * ai_usage_logs は作成・更新日時を持たず、利用日時は used_at で表す。

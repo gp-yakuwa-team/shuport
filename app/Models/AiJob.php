@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\SerializesDatesAsJst;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class AiJob extends Model
 {
-    use HasUuids;
+    use HasUuids, SerializesDatesAsJst;
 
     /**
      * ai_jobs は updated_at を持たない。created_at は DB の既定値で入る。
