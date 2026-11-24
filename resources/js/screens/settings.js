@@ -27,9 +27,13 @@ export default async function init() {
 
     // LINE 連携コードの発行（API-36。有効期限10分・1回だけ使える）
     document.getElementById('btn-link-code')?.addEventListener('click', async () => {
-        const data = await api('/api/v1/line/link-code', { method: 'POST' });
-        document.getElementById('link-code').textContent = data?.code ?? '';
-        document.getElementById('link-code-display').hidden = false;
+        try {
+            const data = await api('/api/v1/line/link-code', { method: 'POST' });
+            document.getElementById('link-code').textContent = data?.code ?? '';
+            document.getElementById('link-code-display').hidden = false;
+        } catch (err) {
+            alert(err.message); // 体験用アカウントは発行できない（403）
+        }
     });
     document.getElementById('btn-unlink')?.addEventListener('click', async () => {
         await api('/api/v1/line/link', { method: 'DELETE' });
