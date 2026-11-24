@@ -32,7 +32,7 @@ use Illuminate\Support\Facades\Route;
 | API-22・36・38 は体験用アカウントの制限（not.demo）の対象。
 |
 | 各コントローラは未実装の間、problem+json の 501 を返す。
-| API-14〜API-40 のリクエスト・レスポンスの項目は詳細設計書で定める。
+| API-14〜API-42 のリクエスト・レスポンスの項目は詳細設計書で定める。
 |
 */
 
@@ -62,6 +62,8 @@ Route::prefix('v1')->group(function () {
             ->middleware('supabase.session');                                       // API-23
         Route::post('/companies/{company_id}/research', [CompanyController::class, 'research']); // API-09
         Route::post('/companies/{company_id}/topics/refresh', [CompanyController::class, 'refreshTopics']); // API-10
+        Route::delete('/companies/{company_id}', [CompanyController::class, 'destroy'])
+            ->middleware('not.demo');                                               // API-41
 
         // ES・履歴書
         Route::post('/entry-sheets', [EntrySheetController::class, 'store']);       // API-08
@@ -79,6 +81,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/tasks', [TaskController::class, 'index']);                     // API-32
         Route::post('/tasks', [TaskController::class, 'store']);                    // API-33
         Route::put('/tasks/{task_id}', [TaskController::class, 'update']);          // API-34
+        Route::delete('/tasks/{task_id}', [TaskController::class, 'destroy']);      // API-42
 
         // ジョブ・LINE・退会
         Route::get('/jobs/{job_id}', [JobController::class, 'show']);               // API-11

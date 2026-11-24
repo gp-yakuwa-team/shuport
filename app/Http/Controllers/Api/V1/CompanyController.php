@@ -99,4 +99,15 @@ class CompanyController extends Controller
     {
         return ProblemDetails::response(501, '未実装です', $request);
     }
+
+    /**
+     * API-41 企業削除: 企業と、その企業に紐づく ES・予定・タスク・
+     * 採用サイトログイン情報・選考ステータス履歴を連鎖して削除する。
+     * AI の利用記録（ai_usage_logs）は消さない（回数は戻らない）。
+     * 他人の企業は 404 を返す。体験用アカウントは not.demo で 403（決定14）。
+     */
+    public function destroy(Request $request, string $companyId): JsonResponse
+    {
+        return ProblemDetails::response(501, '未実装です', $request);
+    }
 }
