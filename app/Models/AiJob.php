@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\FormatsDatesForApi;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AiJob extends Model
 {
@@ -38,5 +39,15 @@ class AiJob extends Model
             'started_at' => 'datetime',
             'finished_at' => 'datetime',
         ];
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function entrySheet(): BelongsTo
+    {
+        return $this->belongsTo(EntrySheet::class);
     }
 }
