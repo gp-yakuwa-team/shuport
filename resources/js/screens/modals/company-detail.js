@@ -21,12 +21,42 @@ export async function openCompanyDetail(companyId) {
     //   #m1-tab-job       … 求人情報のメモ
     void data;
 
-    document.getElementById('m1-btn-research')?.addEventListener('click', async () => {
-        await api(`/api/v1/companies/${companyId}/research`, { method: 'POST' });
-        // TODO: API-11 で状態を見て、終わったら読み直す
+    // ジョブの状態は API-11 で確かめる（3秒ごと）
+    async function pollJob(jobId) {
+        for (;;) {
+            const job = await api(`/api/v1/jobs/${jobId}`);
+            if (job?.status === 'succeeded' || job?.status === 'failed') return job.status;
+            await new Promise((r) => setTimeout(r, 3000));
+        }
+    }
+
+    document.getElementById('m1-btn-research')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        try {
+            const data = await api(`/api/v1/companies/${companyId}/research`, { method: 'POST' });
+            // 処理中・開始できたときは job_id が返る（API定義書 v18 6.5）。
+            // メインAI不可のときは job_id が無く、研究結果タブに失敗表示が出る想定。
+            if (data?.job_id) await pollJob(data.job_id);
+            // TODO: 終わったら API-19 で読み直す（A.4 の記入後に作る）
+        } catch (err) {
+            alert(err.message); // 上限（429）の確定文言など
+        } finally {
+            btn.disabled = false;
+        }
     });
-    document.getElementById('m1-btn-topics')?.addEventListener('click', async () => {
-        await api(`/api/v1/companies/${companyId}/topics/refresh`, { method: 'POST' });
+    document.getElementById('m1-btn-topics')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        try {
+            const data = await api(`/api/v1/companies/${companyId}/topics/refresh`, { method: 'POST' });
+            if (data?.job_id) await pollJob(data.job_id);
+            // TODO: 終わったら API-19 で読み直す（A.4 の記入後に作る）
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            btn.disabled = false;
+        }
     });
     document.getElementById('m1-btn-reveal')?.addEventListener('click', async () => {
         const info = await api(`/api/v1/companies/${companyId}/login-info/password`, {
@@ -38,7 +68,7 @@ export async function openCompanyDetail(companyId) {
         await api(`/api/v1/companies/${companyId}/login-info`, {
             method: 'PUT',
             body: {
-                site_url: document.getElementById('m1-login-url').value,
+                login_url: document.getElementById('m1-login-url').value,
                 login_id: document.getElementById('m1-login-id').value,
                 // パスワード欄が空のときは、今のパスワードを送る（変えるときだけ入れる）
                 password: document.getElementById('m1-login-password').value,
@@ -46,8 +76,13 @@ export async function openCompanyDetail(companyId) {
         });
     });
     document.getElementById('m1-btn-delete')?.addEventListener('click', async () => {
-        // TODO: 企業削除は API-41。ルートの追加が前提（routes/api.php に未追加）。
-        // 確認の文言は基本設計書 4.5 No.41 の通り出すこと。
+        // 企業削除は API-41（決定14）。確認の文言は基本設計書 v16 4.5 No.41 の通り出す。
+        if (!confirm('この企業を削除すると、ES・予定・タスクも削除されます。元に戻せません。削除しますか')) {
+            return;
+        }
+        await api(`/api/v1/companies/${companyId}`, { method: 'DELETE' });
+        modal.hidden = true;
+        location.reload();
     });
     modal.querySelector('[data-close]')?.addEventListener('click', () => {
         modal.hidden = true;

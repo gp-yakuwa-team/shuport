@@ -45,6 +45,7 @@ Route::view('/dashboard', 'dashboard')->name('dashboard');                      
 Route::view('/mypage', 'mypage')->name('mypage');                                       // No.4
 Route::view('/companies', 'companies.index')->name('companies.index');                 // No.5
 Route::view('/companies/create', 'companies.create')->name('companies.create');        // No.6
+Route::view('/entry-sheets/new', 'entry-sheets.edit')->name('entry-sheets.create');    // No.7（新規。{entry_sheet_id} より前に置く）
 Route::view('/entry-sheets/{entry_sheet_id}', 'entry-sheets.edit')->name('entry-sheets.edit'); // No.7
 Route::view('/calendar', 'calendar')->name('calendar');                                // No.8
 Route::view('/tasks', 'tasks.index')->name('tasks.index');                             // No.9

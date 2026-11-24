@@ -4,12 +4,13 @@ import { supabase } from './supabase.js';
 // - アクセストークンは supabase-js のセッションから取る
 // - 成功時は data の中身を返す（204 のときは null）
 // - 失敗時は problem+json（RFC 9457）を読み、status・detail・errors を持つ Error を投げる
-export async function api(path, { method = 'GET', body } = {}) {
+export async function api(path, { method = 'GET', body, signal } = {}) {
     const { data } = supabase ? await supabase.auth.getSession() : { data: {} };
     const token = data.session?.access_token;
 
     const res = await fetch(path, {
         method,
+        ...(signal ? { signal } : {}),
         headers: {
             Accept: 'application/json',
             ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
@@ -25,6 +26,7 @@ export async function api(path, { method = 'GET', body } = {}) {
         const err = new Error(json?.detail || json?.title || `HTTP ${res.status}`);
         err.status = res.status;
         err.errors = json?.errors;
+        err.body = json; // 409 の company_id など、追加の項目が要る画面のため
         throw err;
     }
     return json?.data ?? json;
