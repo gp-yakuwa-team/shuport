@@ -3,10 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    {{-- 画面の supabase-js が使う公開情報（秘密キーは渡さない。基本設計書 v16 6.1） --}}
+    <meta name="supabase-url" content="{{ config('supabase.url') }}">
+    <meta name="supabase-anon-key" content="{{ config('supabase.anon_key') }}">
     <title>@yield('title', 'ShuPort') - ShuPort</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body>
+<body data-page="@yield('page')">
     {{-- 共通レイアウト（基本設計書 v16 4.2）。
          ログイン状態の確認は画面の処理（supabase-js）で行い、未ログインなら
          ログイン画面へ移す（3.4 セキュリティ設計 1-3）。
