@@ -1,9 +1,13 @@
 #!/bin/sh
 # ShuPort 用 pre-push フック：push する PHP ファイルに Pint をかけてから送る。
 #
-# 有効化（各自の環境で1回だけ）:
+# 有効化（各自の環境で1回だけ。pre-commit と共通）:
 #   git config core.hooksPath .githooks
-# （composer setup を実行した場合は自動で設定されます）
+#   chmod +x .githooks/pre-push
+#
+# 役割分担: pre-commit がコミット時に整形し、この pre-push はその網をすり抜けた
+# 変更（--no-verify や、ホストに PHP が無く pre-commit がスキップした Sail 環境など）を
+# push 前に捕まえる最終確認。
 #
 # 動作:
 # - push 対象のコミットに含まれる PHP ファイルだけを整形する
