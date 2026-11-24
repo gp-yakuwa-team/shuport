@@ -7,7 +7,7 @@ class GenerateEsDraftJob extends AiJobBase
     /**
      * タイムアウトは15秒（DB定義書 v7。テストで見直す）。
      */
-    public int $timeout = 15;
+    public int $timeout = 25;
 
     public function __construct(
         public string $entrySheetId,
