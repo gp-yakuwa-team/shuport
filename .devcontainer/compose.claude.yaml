@@ -1,5 +1,6 @@
 services:
   laravel.test:
+    build: !reset null
     environment:
       CLAUDE_CONFIG_DIR: /home/sail/.claude
     volumes:

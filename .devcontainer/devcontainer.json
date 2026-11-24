@@ -7,15 +7,18 @@
 	],
 	"service": "laravel.test",
 	"workspaceFolder": "/var/www/html",
-	"features": {
-		"ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
-	},
+	"initializeCommand": "docker compose build laravel.test",
 	"customizations": {
 		"vscode": {
-			"extensions": [],
+			"extensions": [
+				"anthropic.claude-code"
+			],
 			"settings": {}
 		}
 	},
 	"remoteUser": "sail",
-	"postCreateCommand": "chown -R 1000:1000 /var/www/html 2>/dev/null || true"
+	"remoteEnv": {
+		"PATH": "/home/sail/.local/bin:${containerEnv:PATH}"
+	},
+	"postCreateCommand": "curl -fsSL https://claude.ai/install.sh -o /tmp/install-claude.sh && bash /tmp/install-claude.sh"
 }
