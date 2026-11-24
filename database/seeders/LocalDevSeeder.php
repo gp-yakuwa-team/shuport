@@ -17,8 +17,10 @@ use RuntimeException;
  *
  * データの付け先の利用者は、次の順で決まります。
  * 1. 環境変数 LOCAL_SEED_USER_ID で指定した利用者（自分のアカウントに付けたい場合はこれ）
- * 2. 既にいる利用者のうち、最も古い1件
- * 3. 利用者が1人もいない場合は、このシーダー用に1件作る
+ * 2. 利用者が1人もいない場合は、このシーダー用に1件作る
+ *
+ * 利用者が既にいるのに LOCAL_SEED_USER_ID が未指定の場合は、共有の DB で
+ * 他人のアカウントにサンプルを混入させないため、何も入れずに止まります。
  *
  * 本番・共有の DB では誤って実行しないよう、local 環境以外では何もしません。
  * 体験用アカウントの初期化（DemoDataSeeder / shuport:reset-demo-data）とは別物です。
@@ -52,6 +54,12 @@ class LocalDevSeeder extends Seeder
 
         $user = $this->resolveUser();
 
+        if ($user === null) {
+            $this->command?->warn('LocalDevSeeder: 利用者が既にいるため、付け先を自動では決めません。.env に LOCAL_SEED_USER_ID=<自分の利用者ID> を指定してから実行してください。');
+
+            return;
+        }
+
         foreach ($this->samples as $sample) {
             $this->upsertCompany($user, $sample);
         }
@@ -59,7 +67,7 @@ class LocalDevSeeder extends Seeder
         $this->command?->info('LocalDevSeeder: サンプル企業 '.count($this->samples).' 件を利用者 '.$user->id.' に登録しました。');
     }
 
-    private function resolveUser(): User
+    private function resolveUser(): ?User
     {
         $userId = config('shuport.local_seed_user_id');
 
@@ -73,10 +81,8 @@ class LocalDevSeeder extends Seeder
             return $user;
         }
 
-        $user = User::query()->oldest('created_at')->first();
-
-        if ($user !== null) {
-            return $user;
+        if (User::query()->exists()) {
+            return null;
         }
 
         $user = new User;
