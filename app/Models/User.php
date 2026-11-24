@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\SerializesDatesAsJst;
+use App\Models\Concerns\FormatsDatesForApi;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -17,7 +17,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 #[Fillable(['line_user_id', 'terms_accepted_at', 'terms_version', 'is_demo'])]
 class User extends Authenticatable
 {
-    use HasUuids, SerializesDatesAsJst;
+    use FormatsDatesForApi, HasUuids;
 
     /**
      * @return array<string, string>

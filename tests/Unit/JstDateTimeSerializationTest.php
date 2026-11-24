@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\AiJob;
-use App\Models\Concerns\SerializesDatesAsJst;
+use App\Models\Concerns\FormatsDatesForApi;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
@@ -26,7 +26,7 @@ class JstDateTimeSerializationTest extends TestCase
     /**
      * app/Models のすべてのモデルが trait を使う。新しいモデルで付け忘れると落ちる。
      */
-    public function test_every_model_uses_serializes_dates_as_jst(): void
+    public function test_every_model_uses_formats_dates_for_api(): void
     {
         $models = [];
 
@@ -52,9 +52,9 @@ class JstDateTimeSerializationTest extends TestCase
 
         foreach ($models as $class) {
             $this->assertContains(
-                SerializesDatesAsJst::class,
+                FormatsDatesForApi::class,
                 class_uses_recursive($class),
-                "{$class} が SerializesDatesAsJst を使っていない",
+                "{$class} が FormatsDatesForApi を使っていない",
             );
         }
     }

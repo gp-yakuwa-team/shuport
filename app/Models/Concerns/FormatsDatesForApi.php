@@ -6,12 +6,13 @@ use Carbon\CarbonImmutable;
 use DateTimeInterface;
 
 /**
- * モデルの JSON の日時を、+09:00 を付けた ISO 8601（秒の小数なし）にする。
- * 例：2026-11-20T20:10:00+09:00（API定義書 v18 6.1。決定20）。
- * Eloquent の既定は UTC の Z 付きのため、すべてのモデルでこの trait を使う。
+ * API の応答で使う日時の形（2026年11月22日 決定20）。
+ * 日時は +09:00 付きの ISO 8601、日付だけの項目は YYYY-MM-DD で返す。
+ * 日付だけの項目は、そのモデルを作るときに casts を 'date:Y-m-d' にする
+ * （何も指定しない date だと、日時の形〈例：2026-11-20T00:00:00+09:00〉になる）。
  * モデルに日時を入れるときも、オフセット付きの日時は日本時間に変えてから保存の形にする。
  */
-trait SerializesDatesAsJst
+trait FormatsDatesForApi
 {
     /**
      * 既定の処理はオフセットを捨てて 'Y-m-d H:i:s' にするため、UTC などの日時が9時間ずれる。
