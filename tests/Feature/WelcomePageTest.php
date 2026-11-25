@@ -7,11 +7,21 @@ use Tests\TestCase;
 class WelcomePageTest extends TestCase
 {
     /**
-     * トップページ (開発環境の動作確認画面) が表示されることを確認する。
+     * トップページがログイン画面（No.1）へリダイレクトされることを確認する。
      */
-    public function test_welcome_page_returns_a_successful_response(): void
+    public function test_top_page_redirects_to_login(): void
     {
         $response = $this->get('/');
+
+        $response->assertRedirect('/login');
+    }
+
+    /**
+     * DB 疎通確認画面（開発用）が /dev-check で表示されることを確認する。
+     */
+    public function test_dev_check_page_returns_a_successful_response(): void
+    {
+        $response = $this->get('/dev-check');
 
         $response->assertStatus(200);
         $response->assertSee('shuport');

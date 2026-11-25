@@ -3,7 +3,11 @@
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
+// トップはログイン画面（No.1）へ送る
+Route::redirect('/', '/login');
+
+// DB 疎通確認（開発用。旧トップの確認画面を移設）
+Route::get('/dev-check', function () {
     $dbConnected = false;
     $dbName = '';
 
