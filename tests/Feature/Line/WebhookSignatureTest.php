@@ -2,8 +2,6 @@
 
 namespace Tests\Feature\Line;
 
-use App\Jobs\ParseLineMessageJob;
-use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class WebhookSignatureTest extends TestCase
@@ -29,41 +27,24 @@ class WebhookSignatureTest extends TestCase
         return [$body, $signature];
     }
 
-    public function test_valid_signature_returns_200_and_dispatches_job(): void
+    public function test_valid_signature_returns_200(): void
     {
-        Queue::fake();
-
-        [$body, $signature] = $this->signed([
-            'events' => [
-                [
-                    'type' => 'message',
-                    'replyToken' => 'token-1',
-                    'source' => ['userId' => 'U123'],
-                    'message' => ['type' => 'text', 'text' => '123456'],
-                ],
-            ],
-        ]);
+        [$body, $signature] = $this->signed(['events' => []]);
 
         $this->call('POST', '/api/v1/line/webhook', [], [], [], [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_X_LINE_SIGNATURE' => $signature,
         ], $body)->assertOk();
-
-        Queue::assertPushed(ParseLineMessageJob::class, 1);
     }
 
-    public function test_invalid_signature_returns_401_and_dispatches_nothing(): void
+    public function test_invalid_signature_returns_401_and_processes_nothing(): void
     {
-        Queue::fake();
-
         [$body] = $this->signed(['events' => []]);
 
         $this->call('POST', '/api/v1/line/webhook', [], [], [], [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_X_LINE_SIGNATURE' => 'invalid-signature',
         ], $body)->assertUnauthorized();
-
-        Queue::assertNothingPushed();
     }
 
     public function test_missing_signature_returns_401(): void

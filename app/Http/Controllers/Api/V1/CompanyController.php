@@ -10,6 +10,7 @@ use App\Jobs\ResearchCompanyJob;
 use App\Models\AiJob;
 use App\Models\Company;
 use App\Support\Ai\GeminiApiService;
+use App\Support\Ai\IndustrySuggestion;
 use App\Support\AiUsageGate;
 use App\Support\ProblemDetails;
 use Illuminate\Http\JsonResponse;
@@ -194,11 +195,17 @@ class CompanyController extends Controller
     /**
      * API-17 業界の候補: 企業名から業界の候補を1つ返す（No.6）。AI を同期で呼び、
      * AI生成の回数制限（1時間20回）の対象。総 deadline は15秒（仮。AI設計書 V5 3.2.4）。
-     * ※ 付録A A.4 の記入後に作る（決定24・AGENTS.md）。受け口のみ。
+     * 上限・AI の失敗・分類できない場合は 200 で industry=null を返す（R-P04-04）。
      */
-    public function industrySuggestion(Request $request): JsonResponse
+    public function industrySuggestion(Request $request, IndustrySuggestion $suggestion): JsonResponse
     {
-        return ProblemDetails::response(501, '未実装です', $request);
+        $validated = $request->validate([
+            'company_name' => ['required', 'string', 'max:100'],
+        ]);
+
+        return response()->json(['data' => [
+            'industry' => $suggestion->suggest($request->user(), $validated['company_name']),
+        ]]);
     }
 
     /**

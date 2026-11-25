@@ -15,13 +15,13 @@ class ErrorRecorder
      * データベースのエラーは SQLSTATE とドライバのコードだけを記録する。
      * 記録に失敗しても本来の処理は止めない。
      */
-    public static function record(Throwable $e, ?string $errorType = null): void
+    public static function record(Throwable $e, ?string $errorType = null, ?string $location = null): void
     {
         try {
             ErrorLog::create([
                 'occurred_at' => now(),
                 'error_type' => $errorType ?? self::errorTypeFor($e),
-                'location' => $e::class,
+                'location' => $location ?? $e::class,
                 'message' => self::messageFor($e),
                 'stack_trace' => Str::limit($e->getTraceAsString(), 8000, ''),
             ]);
