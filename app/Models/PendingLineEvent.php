@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\FormatsDatesForApi;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * LINE のトークから読み取った、承認待ちの予定（DB定義書 v7 pending_line_events）。
@@ -12,11 +13,11 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @property string|null $company_name
  * @property string $event_type
- * @property \Illuminate\Support\Carbon $start_at
- * @property \Illuminate\Support\Carbon|null $end_at
+ * @property Carbon $start_at
+ * @property Carbon|null $end_at
  * @property string|null $meeting_url
  * @property string|null $memo
- * @property \Illuminate\Support\Carbon $expires_at
+ * @property Carbon $expires_at
  */
 class PendingLineEvent extends Model
 {

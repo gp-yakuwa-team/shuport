@@ -135,7 +135,7 @@ class LineWebhookFlowTest extends TestCase
     /**
      * @param  array<string, mixed>  $event
      */
-    private function post(array $event): void
+    private function postEvent(array $event): void
     {
         [$body, $signature] = $this->signed($event);
 
@@ -176,7 +176,7 @@ class LineWebhookFlowTest extends TestCase
         Queue::fake();
         $this->fakeLine();
 
-        $this->post($this->textEvent('11月28日14時から面接です'));
+        $this->postEvent($this->textEvent('11月28日14時から面接です'));
 
         Queue::assertPushed(ParseLineMessageJob::class, 1);
         Queue::assertPushed(ParseLineMessageJob::class, function (ParseLineMessageJob $job): bool {
@@ -202,8 +202,8 @@ class LineWebhookFlowTest extends TestCase
         $this->fakeLine();
 
         $event = $this->textEvent('11月28日14時から面接です', 'evt-duplicate');
-        $this->post($event);
-        $this->post($event);
+        $this->postEvent($event);
+        $this->postEvent($event);
 
         Queue::assertPushed(ParseLineMessageJob::class, 1);
     }
@@ -223,7 +223,7 @@ class LineWebhookFlowTest extends TestCase
             ]);
         }
 
-        $this->post($this->textEvent('11月28日14時から面接です'));
+        $this->postEvent($this->textEvent('11月28日14時から面接です'));
 
         Queue::assertNothingPushed();
         $this->assertSame('読み取りの回数の上限に達しました。時間をおいて送るか、Webのカレンダーから登録してください', $this->replyText());
@@ -240,7 +240,7 @@ class LineWebhookFlowTest extends TestCase
             'expires_at' => now()->addMinutes(10),
         ]);
 
-        $this->post($this->textEvent('123456'));
+        $this->postEvent($this->textEvent('123456'));
 
         $this->assertSame('U-linked', User::query()->find($this->userId)->line_user_id);
         $this->assertDatabaseMissing('line_one_time_codes', ['user_id' => $this->userId]);
@@ -252,7 +252,7 @@ class LineWebhookFlowTest extends TestCase
         $this->fakeLine();
         User::query()->whereKey($this->userId)->update(['line_user_id' => null]);
 
-        $this->post($this->textEvent('123456'));
+        $this->postEvent($this->textEvent('123456'));
 
         $this->assertNull(User::query()->find($this->userId)->line_user_id);
         $this->assertSame('連携コードが正しくないか、有効期限が切れています', $this->replyText());
@@ -263,7 +263,7 @@ class LineWebhookFlowTest extends TestCase
         $this->fakeLine();
         User::query()->whereKey($this->userId)->update(['line_user_id' => null]);
 
-        $this->post($this->textEvent('こんにちは'));
+        $this->postEvent($this->textEvent('こんにちは'));
 
         $this->assertStringStartsWith('ShuPortとの連携が完了していません', $this->replyText() ?? '');
     }
@@ -295,7 +295,7 @@ class LineWebhookFlowTest extends TestCase
             'expires_at' => now()->addDay(),
         ]);
 
-        $this->post($this->textEvent('はい'));
+        $this->postEvent($this->textEvent('はい'));
 
         $this->assertDatabaseCount('pending_line_events', 0);
         $this->assertDatabaseHas('events', [
@@ -323,7 +323,7 @@ class LineWebhookFlowTest extends TestCase
             'expires_at' => now()->addDay(),
         ]);
 
-        $this->post($this->textEvent('いいえ'));
+        $this->postEvent($this->textEvent('いいえ'));
 
         $this->assertDatabaseCount('pending_line_events', 0);
         $this->assertDatabaseCount('events', 0);
@@ -346,7 +346,7 @@ class LineWebhookFlowTest extends TestCase
             'expires_at' => now()->subMinute(),
         ]);
 
-        $this->post($this->textEvent('はい'));
+        $this->postEvent($this->textEvent('はい'));
 
         $this->assertSame('確認の有効期限が切れました。もう一度送信してください', $this->replyText());
     }
@@ -357,7 +357,7 @@ class LineWebhookFlowTest extends TestCase
         $this->fakeLine();
         config(['ai.gemini.api_key' => '', 'ai.gemini.paid_project_verified' => false, 'ai.workers_ai.account_id' => '', 'ai.workers_ai.api_token' => '']);
 
-        $this->post($this->textEvent('11月28日14時から面接です'));
+        $this->postEvent($this->textEvent('11月28日14時から面接です'));
 
         Queue::assertNothingPushed();
         $this->assertSame('ただいま日程の自動読み取りを停止しています。Webのカレンダーから登録してください', $this->replyText());
@@ -370,7 +370,7 @@ class LineWebhookFlowTest extends TestCase
         $event = $this->textEvent('ignored');
         $event['message'] = ['id' => 'msg-2', 'type' => 'sticker'];
 
-        $this->post($event);
+        $this->postEvent($event);
 
         Http::assertNothingSent();
     }

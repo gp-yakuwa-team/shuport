@@ -104,7 +104,11 @@ class IndustrySuggestionApiTest extends TestCase
             'input_tokens' => 120,
             'output_tokens' => 8,
         ]);
-        Http::assertSent(fn ($request) => str_contains($request->body(), '"task":"industry_suggestion"'));
+        Http::assertSent(function ($request) {
+            $text = $request['contents'][0]['parts'][0]['text'] ?? '';
+
+            return is_string($text) && str_contains($text, '"task":"industry_suggestion"');
+        });
     }
 
     public function test_returns_null_when_ai_fails(): void
