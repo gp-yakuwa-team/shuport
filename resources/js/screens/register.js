@@ -17,6 +17,10 @@ export default function init() {
         const { error } = await supabase.auth.signUp({
             email: form.email.value,
             password: form.password.value,
+            options: {
+                // 確認メールの URL を押した後は、自前のログイン画面へ戻す（決定22）。
+                emailRedirectTo: `${location.origin}/login`,
+            },
         });
         if (error) {
             errorBox.textContent = '登録できませんでした。入力内容を確認してください';

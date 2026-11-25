@@ -13,7 +13,11 @@ export default async function init() {
     });
     document.getElementById('email-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const { error } = await supabase.auth.updateUser({ email: e.target.email.value });
+        const { error } = await supabase.auth.updateUser(
+            { email: e.target.email.value },
+            // 確認メールの URL を押した後は、自前の設定画面へ戻す（決定22）。
+            { emailRedirectTo: `${location.origin}/settings` },
+        );
         document.getElementById('email-notice').hidden = !error ? false : true;
         void error;
     });
