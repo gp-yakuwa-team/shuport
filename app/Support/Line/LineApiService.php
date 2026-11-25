@@ -19,9 +19,10 @@ class LineApiService
     }
 
     /**
-     * テキストメッセージの形を作る。
+     * テキストメッセージの形を作る。quickReply など、文字列以外の値を
+     * 足す呼び出し側があるため、戻り値は混在の配列とする。
      *
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     public static function textMessage(string $text): array
     {

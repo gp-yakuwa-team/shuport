@@ -31,6 +31,16 @@ class GeminiApiService
      */
     public function generateJson(string $prompt): array
     {
+        return $this->generateResult($prompt)->data;
+    }
+
+    /**
+     * 応答本文に加えて、実際に使ったモデルとトークン数を返す。
+     *
+     * @throws AiServiceException
+     */
+    public function generateResult(string $prompt, ?int $timeoutSeconds = null): AiResult
+    {
         if (! $this->isAvailable()) {
             throw new AiServiceException('Gemini is not available (API key missing or paid project not verified).');
         }
@@ -39,7 +49,7 @@ class GeminiApiService
 
         $response = Http::withHeaders([
             'x-goog-api-key' => (string) config('ai.gemini.api_key'),
-        ])->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent", [
+        ])->timeout($timeoutSeconds ?? 30)->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent", [
             'contents' => [
                 ['parts' => [['text' => $prompt]]],
             ],
@@ -65,6 +75,16 @@ class GeminiApiService
         }
 
         /** @var array<string, mixed> $decoded */
-        return $decoded;
+        return new AiResult(
+            $decoded,
+            $model,
+            $this->tokenCount($response->json('usageMetadata.promptTokenCount')),
+            $this->tokenCount($response->json('usageMetadata.candidatesTokenCount')),
+        );
+    }
+
+    private function tokenCount(mixed $value): ?int
+    {
+        return is_int($value) && $value >= 0 ? $value : null;
     }
 }

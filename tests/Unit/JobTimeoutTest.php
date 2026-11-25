@@ -19,6 +19,6 @@ class JobTimeoutTest extends TestCase
         $this->assertSame(40, (new ResearchCompanyJob('00000000-0000-0000-0000-000000000000'))->timeout);
         $this->assertSame(40, (new RefreshCompanyTopicsJob('00000000-0000-0000-0000-000000000000'))->timeout);
         $this->assertSame(25, (new GenerateEsDraftJob('00000000-0000-0000-0000-000000000000'))->timeout);
-        $this->assertSame(30, (new ParseLineMessageJob([]))->timeout);
+        $this->assertSame(30, (new ParseLineMessageJob('00000000-0000-0000-0000-000000000000', 'key', '2026-11-25T12:00:00+09:00'))->timeout);
     }
 }

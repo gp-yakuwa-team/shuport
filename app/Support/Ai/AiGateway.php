@@ -28,20 +28,43 @@ class AiGateway
     ) {}
 
     /**
+     * 切り替え先を含め、どちらかの AI が使える状態かどうか。
+     */
+    public function isAvailable(): bool
+    {
+        return $this->gemini->isAvailable() || $this->workersAi->isAvailable();
+    }
+
+    /**
      * @return array<string, mixed>
      *
      * @throws AiServiceException 使える AI がない、または呼び出しに失敗したとき
      */
     public function generateJson(string $purpose, string $prompt): array
     {
+        return $this->generateResult($purpose, $prompt)->data;
+    }
+
+    /**
+     * 応答本文と、実際に応答したモデル・トークン数を返す。
+     * 時間切れは機能ごとに渡す（Gemini と Workers AI で別々）。
+     *
+     * @throws AiServiceException
+     */
+    public function generateResult(
+        string $purpose,
+        string $prompt,
+        ?int $geminiTimeoutSeconds = null,
+        ?int $workersTimeoutSeconds = null,
+    ): AiResult {
         try {
-            return $this->gemini->generateJson($prompt);
+            return $this->gemini->generateResult($prompt, $geminiTimeoutSeconds);
         } catch (AiServiceException $e) {
             if (! in_array($purpose, self::FALLBACK_PURPOSES, true)) {
                 throw $e;
             }
 
-            return $this->workersAi->generateJson($prompt);
+            return $this->workersAi->generateResult($prompt, $workersTimeoutSeconds);
         }
     }
 }
