@@ -7,7 +7,6 @@ use App\Models\AiJob;
 use App\Support\ProblemDetails;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 
 class JobController extends Controller
 {
@@ -16,14 +15,6 @@ class JobController extends Controller
         '企業研究' => 'research_company',
         'ES生成' => 'generate_es_draft',
         '最新トピックス再取得' => 'refresh_topics',
-    ];
-
-    /** @var array<string, string> DB の status => API の status（API定義書 v18 6.7） */
-    private const STATUSES = [
-        '未処理' => 'queued',
-        '生成中' => 'processing',
-        '完了' => 'succeeded',
-        '失敗' => 'failed',
     ];
 
     /**
@@ -41,18 +32,10 @@ class JobController extends Controller
             return ProblemDetails::response(404, 'ジョブが見つかりません', $request);
         }
 
-        $status = self::STATUSES[$job->status] ?? $job->status;
-
-        if (in_array($status, ['queued', 'processing'], true)
-            && $job->created_at !== null
-            && Carbon::parse($job->created_at)->lt(now()->subMinutes(5))) {
-            $status = 'failed';
-        }
-
         return response()->json(['data' => [
             'job_id' => $job->id,
             'job_type' => self::JOB_TYPES[$job->job_type] ?? $job->job_type,
-            'status' => $status,
+            'status' => $job->apiStatus(),
             'progress_step' => $job->progress_step,
             'company_id' => $job->company_id,
             'entry_sheet_id' => $job->entry_sheet_id,
