@@ -52,6 +52,21 @@ class Company extends Model
     protected $guarded = [];
 
     /**
+     * source_links・topics_source_links は jsonb（URL の一覧）。配列で読み書きする。
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'research_generated_at' => 'datetime',
+            'topics_fetched_at' => 'datetime',
+            'source_links' => 'array',
+            'topics_source_links' => 'array',
+        ];
+    }
+
+    /**
      * 二重登録の判定に使う正規化済み企業名（前後の空白を取り除く）。
      * 表記ゆれなどの曖昧な一致は検出しない（API定義書 v18 6.3）。
      */

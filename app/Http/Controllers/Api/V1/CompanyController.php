@@ -9,6 +9,9 @@ use App\Jobs\RefreshCompanyTopicsJob;
 use App\Jobs\ResearchCompanyJob;
 use App\Models\AiJob;
 use App\Models\Company;
+use App\Models\CompanyLoginInfo;
+use App\Models\EntrySheet;
+use App\Models\SelectionStatusHistory;
 use App\Support\Ai\GeminiApiService;
 use App\Support\Ai\IndustrySuggestion;
 use App\Support\AiUsageGate;
@@ -219,12 +222,75 @@ class CompanyController extends Controller
 
     /**
      * API-19 企業詳細取得: 企業詳細モーダル（M1）の①③④タブの内容と、選考ステータスの履歴を返す。
-     * 他人の企業・存在しない企業は 404。
-     * ※ 付録A A.4 の記入後に作る（決定24・AGENTS.md）。受け口のみ。
+     * 他人の企業・存在しない企業は 404（詳細設計書 v5 付録A A.4）。
+     * research は research_generated_at、topics は topics_fetched_at が空なら null。
+     * research_status は最新の企業研究ジョブの状態（API-11 と同じ形）。
+     * entry_sheets は③タブの ES の一覧（設問と回答は含めない。中身は API-24。2026-11-28 決定 No.8）。
      */
-    public function show(Request $request): JsonResponse
+    public function show(Request $request, string $companyId): JsonResponse
     {
-        return ProblemDetails::response(501, '未実装です', $request);
+        $company = $this->ownCompany($request, $companyId);
+
+        if ($company instanceof JsonResponse) {
+            return $company;
+        }
+
+        // toArray() で日時を +09:00 の形にする（FormatsDatesForApi。決定20）
+        $attrs = $company->toArray();
+
+        $research = $company->research_generated_at === null ? null : [
+            'business_overview' => $company->research_business_overview,
+            'strengths' => $company->research_strengths,
+            'weaknesses' => $company->research_weaknesses,
+            'selection_flow' => $company->research_selection_flow,
+            'interview_questions' => $company->research_interview_questions,
+            'latest_topics' => $company->research_latest_topics,
+            'generated_at' => $attrs['research_generated_at'],
+            'source_links' => $company->source_links,
+            'search_suggestions_html' => $company->search_suggestions_html,
+        ];
+
+        $topics = $company->topics_fetched_at === null ? null : [
+            'search_suggestions_html' => $company->topics_search_suggestions_html,
+            'source_links' => $company->topics_source_links,
+            'fetched_at' => $attrs['topics_fetched_at'],
+        ];
+
+        $researchJob = AiJob::query()
+            ->where('company_id', $company->id)
+            ->where('job_type', '企業研究')
+            ->latest('created_at')
+            ->first();
+
+        $histories = SelectionStatusHistory::query()
+            ->where('company_id', $company->id)
+            ->orderByDesc('changed_at')
+            ->orderBy('id')
+            ->get(['id', 'from_status', 'to_status', 'changed_at'])
+            ->toArray();
+
+        $entrySheets = EntrySheet::query()
+            ->where('company_id', $company->id)
+            ->orderByDesc('updated_at')
+            ->orderBy('id')
+            ->get(['id', 'title', 'updated_at'])
+            ->toArray();
+
+        return response()->json(['data' => [
+            'id' => $company->id,
+            'company_name' => $company->company_name,
+            'industry' => $company->industry,
+            'job_info_text' => $company->job_info_text,
+            'selection_status' => $company->selection_status,
+            'research' => $research,
+            'topics' => $topics,
+            'research_status' => $researchJob?->apiStatus(),
+            'status_histories' => $histories,
+            'entry_sheets' => $entrySheets,
+            'has_login_info' => CompanyLoginInfo::query()->whereKey($company->id)->exists(),
+            'created_at' => $attrs['created_at'],
+            'updated_at' => $attrs['updated_at'],
+        ]]);
     }
 
     /**
