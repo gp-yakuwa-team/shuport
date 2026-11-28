@@ -15,6 +15,9 @@ use App\Models\SelectionStatusHistory;
 use App\Support\Ai\GeminiApiService;
 use App\Support\Ai\IndustrySuggestion;
 use App\Support\AiUsageGate;
+use App\Support\ErrorRecorder;
+use App\Support\LoginInfoCipher;
+use App\Support\LoginInfoCipherException;
 use App\Support\ProblemDetails;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -305,11 +308,36 @@ class CompanyController extends Controller
 
     /**
      * API-21 採用サイトログイン情報取得: ②タブの URL と ID を返す（パスワードは返さない。3.4 3-1）。
-     * ※ 付録A A.4 の記入後に作る（決定24・AGENTS.md）。受け口のみ。
+     * 未登録はどちらも null。他人の企業・存在しない企業は 404。体験用アカウントも使える。
+     * 復号できないとき（鍵が無い・鍵が違う・暗号文が壊れている）は、値を返さず 500 にする。
      */
-    public function showLoginInfo(Request $request): JsonResponse
+    public function showLoginInfo(Request $request, string $companyId, LoginInfoCipher $cipher): JsonResponse
     {
-        return ProblemDetails::response(501, '未実装です', $request);
+        $company = $this->ownCompany($request, $companyId);
+
+        if ($company instanceof JsonResponse) {
+            return $company;
+        }
+
+        $info = CompanyLoginInfo::query()
+            ->whereKey($company->id)
+            ->first(['company_id', 'login_url', 'login_id_encrypted']);
+
+        $loginUrl = $info?->login_url;
+        $encryptedId = $info?->login_id_encrypted;
+
+        try {
+            $loginId = is_string($encryptedId) ? $cipher->decrypt($encryptedId) : null;
+        } catch (LoginInfoCipherException $e) {
+            ErrorRecorder::record($e, '例外', 'api.login-info.show');
+
+            return ProblemDetails::response(500, 'サーバーエラーが発生しました。時間をおいて再度お試しください。', $request);
+        }
+
+        return response()->json(['data' => [
+            'login_url' => $loginUrl,
+            'login_id' => $loginId,
+        ]]);
     }
 
     /**
