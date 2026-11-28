@@ -83,6 +83,23 @@ class CompanyDetailApiTest extends TestCase
             $table->timestamp('finished_at')->nullable();
             $table->timestamp('created_at')->useCurrent();
         });
+        Schema::create('entry_sheets', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->uuid('company_id');
+            $table->string('title');
+            $table->timestamps();
+        });
+        Schema::create('es_answers', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->uuid('entry_sheet_id');
+            $table->string('item_type');
+            $table->text('question');
+            $table->text('answer')->nullable();
+            $table->integer('max_chars');
+            $table->integer('sort_order');
+            $table->text('ai_draft')->nullable();
+            $table->timestamps();
+        });
 
         $this->userId = (string) Str::uuid();
         $this->otherUserId = (string) Str::uuid();
@@ -149,6 +166,20 @@ class CompanyDetailApiTest extends TestCase
         return $id;
     }
 
+    private function addEntrySheet(string $companyId, string $title, string $updatedAt, ?string $id = null): string
+    {
+        $id ??= (string) Str::uuid();
+        DB::table('entry_sheets')->insert([
+            'id' => $id,
+            'company_id' => $companyId,
+            'title' => $title,
+            'created_at' => '2026-11-01 09:00:00',
+            'updated_at' => $updatedAt,
+        ]);
+
+        return $id;
+    }
+
     public function test_show_returns_all_fields(): void
     {
         $this->travelTo(Carbon::parse('2026-11-20 10:00:00', 'Asia/Tokyo'));
@@ -201,6 +232,7 @@ class CompanyDetailApiTest extends TestCase
             'status_histories' => [
                 ['id' => $historyId, 'from_status' => null, 'to_status' => '検討中', 'changed_at' => '2026-11-20T10:00:00+09:00'],
             ],
+            'entry_sheets' => [],
             'has_login_info' => true,
             'created_at' => '2026-11-20T10:00:00+09:00',
             'updated_at' => '2026-11-20T10:00:00+09:00',
@@ -353,5 +385,87 @@ class CompanyDetailApiTest extends TestCase
                 ->assertJsonPath('data.status', $expected)
                 ->assertJsonPath('data.job_type', 'research_company');
         }
+    }
+
+    public function test_entry_sheets_are_ordered_by_updated_at_desc_then_id_asc(): void
+    {
+        $company = $this->makeCompany($this->userId);
+        $older = $this->addEntrySheet($company->id, '夏インターン', '2026-11-10 09:00:00');
+        $newer = $this->addEntrySheet($company->id, '本選考', '2026-11-12 18:30:00');
+
+        $response = $this->getJson("/api/v1/companies/{$company->id}", $this->headers($this->userId));
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('data.entry_sheets', [
+            ['id' => $newer, 'title' => '本選考', 'updated_at' => '2026-11-12T18:30:00+09:00'],
+            ['id' => $older, 'title' => '夏インターン', 'updated_at' => '2026-11-10T09:00:00+09:00'],
+        ]);
+    }
+
+    public function test_entry_sheets_with_same_updated_at_are_ordered_by_id_asc(): void
+    {
+        $company = $this->makeCompany($this->userId);
+        $idB = $this->addEntrySheet($company->id, 'B', '2026-11-11 09:00:00', 'bbbbbbbb-0000-4000-8000-000000000000');
+        $idA = $this->addEntrySheet($company->id, 'A', '2026-11-11 09:00:00', 'aaaaaaaa-0000-4000-8000-000000000000');
+
+        $response = $this->getJson("/api/v1/companies/{$company->id}", $this->headers($this->userId));
+
+        $this->assertSame([$idA, $idB], array_column($response->json('data.entry_sheets'), 'id'));
+    }
+
+    public function test_entry_sheets_is_empty_array_when_no_entry_sheets(): void
+    {
+        $company = $this->makeCompany($this->userId);
+
+        $response = $this->getJson("/api/v1/companies/{$company->id}", $this->headers($this->userId));
+
+        $response->assertStatus(200);
+        $this->assertArrayHasKey('entry_sheets', $response->json('data'));
+        $response->assertJsonPath('data.entry_sheets', []);
+    }
+
+    public function test_entry_sheets_exclude_other_companies_and_other_users(): void
+    {
+        $company = $this->makeCompany($this->userId);
+        $anotherCompany = $this->makeCompany($this->userId, [
+            'company_name' => '株式会社ほか',
+            'normalized_company_name' => '株式会社ほか',
+        ]);
+        $otherUsersCompany = $this->makeCompany($this->otherUserId);
+        $own = $this->addEntrySheet($company->id, '本選考', '2026-11-10 09:00:00');
+        $this->addEntrySheet($anotherCompany->id, '別の企業のES', '2026-11-11 09:00:00');
+        $this->addEntrySheet($otherUsersCompany->id, 'ほかの人のES', '2026-11-12 09:00:00');
+
+        $response = $this->getJson("/api/v1/companies/{$company->id}", $this->headers($this->userId));
+
+        $this->assertSame([$own], array_column($response->json('data.entry_sheets'), 'id'));
+    }
+
+    public function test_entry_sheets_do_not_include_questions_or_answers(): void
+    {
+        $company = $this->makeCompany($this->userId);
+        $esId = $this->addEntrySheet($company->id, '本選考', '2026-11-10 09:00:00');
+        DB::table('es_answers')->insert([
+            'id' => (string) Str::uuid(),
+            'entry_sheet_id' => $esId,
+            'item_type' => '志望動機',
+            'question' => '設問の本文です',
+            'answer' => '回答の本文です',
+            'max_chars' => 400,
+            'sort_order' => 1,
+            'ai_draft' => 'AIの初案です',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->getJson("/api/v1/companies/{$company->id}", $this->headers($this->userId));
+
+        $entrySheets = $response->json('data.entry_sheets');
+        $this->assertCount(1, $entrySheets);
+        $this->assertSame(['id', 'title', 'updated_at'], array_keys($entrySheets[0]));
+        $body = $response->getContent();
+        $this->assertStringNotContainsString('設問の本文です', $body);
+        $this->assertStringNotContainsString('回答の本文です', $body);
+        $this->assertStringNotContainsString('AIの初案です', $body);
     }
 }

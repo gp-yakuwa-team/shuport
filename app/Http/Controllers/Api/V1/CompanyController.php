@@ -10,6 +10,7 @@ use App\Jobs\ResearchCompanyJob;
 use App\Models\AiJob;
 use App\Models\Company;
 use App\Models\CompanyLoginInfo;
+use App\Models\EntrySheet;
 use App\Models\SelectionStatusHistory;
 use App\Support\Ai\GeminiApiService;
 use App\Support\Ai\IndustrySuggestion;
@@ -227,6 +228,7 @@ class CompanyController extends Controller
      * 他人の企業・存在しない企業は 404（詳細設計書 v5 付録A A.4）。
      * research は research_generated_at、topics は topics_fetched_at が空なら null。
      * research_status は最新の企業研究ジョブの状態（API-11 と同じ形）。
+     * entry_sheets は③タブの ES の一覧（設問と回答は含めない。中身は API-24。2026-11-28 決定 No.8）。
      */
     public function show(Request $request, string $companyId): JsonResponse
     {
@@ -270,6 +272,13 @@ class CompanyController extends Controller
             ->get(['id', 'from_status', 'to_status', 'changed_at'])
             ->toArray();
 
+        $entrySheets = EntrySheet::query()
+            ->where('company_id', $company->id)
+            ->orderByDesc('updated_at')
+            ->orderBy('id')
+            ->get(['id', 'title', 'updated_at'])
+            ->toArray();
+
         return response()->json(['data' => [
             'id' => $company->id,
             'company_name' => $company->company_name,
@@ -280,6 +289,7 @@ class CompanyController extends Controller
             'topics' => $topics,
             'research_status' => $researchJob?->apiStatus(),
             'status_histories' => $histories,
+            'entry_sheets' => $entrySheets,
             'has_login_info' => CompanyLoginInfo::query()->whereKey($company->id)->exists(),
             'created_at' => $attrs['created_at'],
             'updated_at' => $attrs['updated_at'],
